@@ -94,7 +94,7 @@
  <div class="pin-photo-header"><div style="min-width:0"><strong id="pinPhotoName">연결송수구</strong><div class="small muted" id="pinPhotoApartment"></div></div><button id="pinPhotoClose" class="button">닫기 ×</button></div>
  <div id="pinPhotoStage" class="pin-photo-stage"><img id="pinPhotoImage" class="hidden" alt="선택한 연결송수구 실제 사진"><div id="pinPhotoEmpty" class="pin-photo-empty">사진을 불러오는 중입니다.</div></div>
  <div id="pinPhotoInfo" class="pin-photo-info"></div>
- <div class="pin-photo-actions"><button class="button" id="photoMinus">− 축소</button><button class="button" id="photoFit">화면 맞춤</button><button class="button" id="photoPlus">+ 확대</button><button class="button blue hidden" id="editPinFromPhoto">표식·사진 수정</button></div>
+ <div class="pin-photo-actions"><button class="button" id="photoMinus">− 축소</button><button class="button" id="photoFit">화면 맞춤</button><button class="button" id="photoPlus">+ 확대</button><button class="button blue hidden" id="editPinFromPhoto">표식·사진 수정</button><button class="button red hidden" id="deletePinFromPhoto">표식 삭제</button></div>
 </div>
 <div id="pinEditorModal" class="overlay pin-editor-overlay hidden" role="dialog" aria-modal="true" aria-label="연결송수구 정보 편집"><form class="dialog panel pin-dialog" id="pinEditorForm"><h2 id="pinEditorTitle">송수구 표식 등록</h2><p class="small muted">관리자만 등록·수정할 수 있습니다. 지도 위에서 지정한 실제 좌표로 저장됩니다.</p>
 <label for="pinBuilding">동 번호 · 송수구명<input id="pinBuilding" type="text" maxlength="100" placeholder="예: 101동 연결송수구" required></label>
@@ -313,7 +313,7 @@ async function openPinPhoto(p){
  activePhotoPin=p;const ticket=++photoToken;
  $('pinPhotoName').textContent=p.building||'연결송수구';$('pinPhotoApartment').textContent=selected?.name||'';
  $('pinPhotoInfo').textContent=[p.pressure_range?'압력범위: '+p.pressure_range:null,p.supply_zone?'송수구역: '+p.supply_zone:null,p.memo?'설치 위치: '+p.memo:'설치 위치 메모가 등록되지 않았습니다.'].filter(Boolean).join('\n');
- $('pinPhotoModal').classList.remove('hidden');$('editPinFromPhoto').classList.toggle('hidden',!isAdmin);
+ $('pinPhotoModal').classList.remove('hidden');$('editPinFromPhoto').classList.toggle('hidden',!isAdmin);$('deletePinFromPhoto').classList.toggle('hidden',!isAdmin);
  const img=$('pinPhotoImage');img.classList.add('hidden');img.removeAttribute('src');
  $('pinPhotoEmpty').classList.remove('hidden');$('pinPhotoEmpty').textContent=p.photo_path?'실제 송수구 사진을 불러오는 중입니다.':'등록된 실제 사진이 없습니다.';photoReset();
  if(!p.photo_path)return;
@@ -324,6 +324,19 @@ async function openPinPhoto(p){
 }
 $('pinPhotoClose').onclick=closePinPhoto;
 $('editPinFromPhoto').onclick=()=>{const p=activePhotoPin;if(p&&isAdmin)openPinEditor(p)};
+$('deletePinFromPhoto').onclick=async()=>{
+ const p=activePhotoPin;
+ if(!p||!isAdmin||!selected)return;
+ if(!confirm(`${p.building||'연결송수구'} 표식과 연결된 사진을 삭제하시겠습니까?\n삭제 후 되돌릴 수 없습니다.`))return;
+ const b=$('deletePinFromPhoto');b.disabled=true;
+ try{
+  const {error}=await client.from('standpipe_pins').delete().eq('id',p.id).eq('apartment_id',selected.id);
+  if(error)throw error;
+  let storageWarning='';
+  if(p.photo_path){const {error:photoError}=await client.storage.from(BUCKET).remove([p.photo_path]);if(photoError)storageWarning=' 단, 저장된 사진 파일 정리에는 실패했습니다.'}
+  closePinPhoto();await fetchPins();showNotice('송수구 표식이 삭제되었습니다.'+storageWarning,storageWarning?'error':'success');
+ }catch(e){alert('표식 삭제 실패: '+errorMessage(e))}finally{b.disabled=false}
+};
 $('photoPlus').onclick=()=>photoZoom(1.35);$('photoMinus').onclick=()=>photoZoom(1/1.35);$('photoFit').onclick=photoReset;
 $('pinPhotoStage').addEventListener('pointerdown',e=>{e.currentTarget.setPointerCapture(e.pointerId);photoPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});photoPrev=null});
 $('pinPhotoStage').addEventListener('pointermove',e=>{if(!photoPointers.has(e.pointerId))return;photoPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});const pts=[...photoPointers.values()];const mid={x:pts.reduce((sum,p)=>sum+p.x,0)/pts.length,y:pts.reduce((sum,p)=>sum+p.y,0)/pts.length};const dist=pts.length>=2?Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y):null;if(photoPrev&&photoPrev.n===pts.length){photoX+=mid.x-photoPrev.x;photoY+=mid.y-photoPrev.y;if(dist&&photoPrev.dist)photoScale=Math.min(10,Math.max(.7,photoScale*dist/photoPrev.dist));applyPhotoTransform()}photoPrev={...mid,dist,n:pts.length}});
@@ -361,7 +374,7 @@ async function loadKakaoMap(){
  const a=selected;if(!a)return;const ticket=++geoMapTicket;
  clearGeoOverlays();geoMap=null;geoApartmentCenter=null;$('mapStage').style.display='none';$('mapImage').classList.add('hidden');$('noMap').classList.add('hidden');$('kakaoMap').classList.remove('hidden');$('geoMapControl').classList.remove('hidden');$('confirmAptLocation').classList.add('hidden');$('retryAptLocation').classList.add('hidden');setGeoStatus('카카오맵과 아파트 주소를 불러오는 중입니다.');
  $('landscapeToggle').classList.add('hidden');$('uploadButton').classList.add('hidden');$('deleteButton').classList.add('hidden');
- $('plus').textContent='+ 확대';$('minus').textContent='− 축소';$('reset').textContent='단지 중심';
+ $('plus').textContent='+ 확대';$('minus').textContent='− 축소';$('reset').textContent='단지 보기';
  updateMapMeta();
  try{
   await getKakaoSDK();if(ticket!==geoMapTicket||!selected||selected.id!==a.id)return;
@@ -369,7 +382,7 @@ async function loadKakaoMap(){
   if(!isGeoPoint(pos.lat,pos.lng))throw Error('주소에서 유효한 위도·경도를 찾지 못했습니다.');
   geoApartmentCenter=pos;geoIsSavedCenter=pos.saved;geoLastGeoSource=pos.source;
   const center=new kakao.maps.LatLng(pos.lat,pos.lng);
-  geoMap=new kakao.maps.Map($('kakaoMap'),{center,level:3});
+  geoMap=new kakao.maps.Map($('kakaoMap'),{center,level:2});
   kakao.maps.event.addListener(geoMap,'click',mouse=>{
    if(!pinMode||!isAdmin||!selected)return;
    const p=mouse.latLng,coords={latitude:p.getLat(),longitude:p.getLng(),x_pct:50,y_pct:50};
@@ -421,7 +434,7 @@ $('retryAptLocation').onclick=async()=>{
 // Kakao 기본 축척/이동을 사용하며, 기존 도면 변환 함수는 구형 데이터 보호를 위해 남겨둡니다.
 $('plus').onclick=()=>{if(geoMap)geoMap.setLevel(Math.max(1,geoMap.getLevel()-1),{animate:true})};
 $('minus').onclick=()=>{if(geoMap)geoMap.setLevel(Math.min(12,geoMap.getLevel()+1),{animate:true})};
-$('reset').onclick=()=>{if(geoMap&&geoApartmentCenter)geoMap.setCenter(new kakao.maps.LatLng(geoApartmentCenter.lat,geoApartmentCenter.lng))};
+$('reset').onclick=()=>{if(geoMap&&geoApartmentCenter){geoMap.setLevel(2);geoMap.setCenter(new kakao.maps.LatLng(geoApartmentCenter.lat,geoApartmentCenter.lng))}};
 
 $('loginForm').onsubmit=async e=>{e.preventDefault();$('loginError').textContent='';$('doLogin').disabled=true;try{const {error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;$('loginModal').classList.add('hidden');$('password').value=''}catch(error){$('loginError').textContent=errorMessage(error)}finally{$('doLogin').disabled=false}};
 $('authButton').onclick=async()=>{if(!configured){showNotice('HTML의 SUPABASE_URL 및 SUPABASE_PUBLISHABLE_KEY를 먼저 설정하세요.','error');return}if(user){if(confirm('로그아웃하시겠습니까?'))await client.auth.signOut();return}$('loginModal').classList.remove('hidden');$('email').focus()};$('cancelLogin').onclick=()=>$('loginModal').classList.add('hidden');$('seed').onclick=seedData;$('mapClose').onclick=hideMap;$('uploadButton').onclick=()=>$('fileInput').click();$('fileInput').onchange=e=>{const f=e.target.files?.[0];if(f)void uploadMap(f)};$('deleteButton').onclick=deleteMap;$('plus').onclick=()=>zoom(1.3);$('minus').onclick=()=>zoom(1/1.3);$('reset').onclick=resetView;for(const k of ['search','town','center'])$(k).addEventListener(k==='search'?'input':'change',render);$('clear').onclick=()=>{$('search').value='';$('town').value='';$('center').value='';render()};document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('pinEditorModal').classList.contains('hidden'))closePinEditor();else if(!$('pinPhotoModal').classList.contains('hidden'))closePinPhoto();else if(pinMode)cancelPinMode();else if(!$('loginModal').classList.contains('hidden'))$('loginModal').classList.add('hidden');else if(selected)hideMap()}});window.addEventListener('resize',()=>{if(selected&&baseW)resetView()});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&client)void refresh()});
