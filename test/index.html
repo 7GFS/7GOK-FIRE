@@ -116,6 +116,9 @@
 /* 4차: 기본 간편 보기(빨간 송수구 표식만 표시). 데이터와 표식 터치 기능은 유지. */
 #mapModal.compact-pins .geo-pin-text,
 #mapModal.compact-pins .fd-pin-detail{display:none!important}
+/* 간편 모드에서도 선택된 송수구에 대해서만 상세정보 표시 */
+#mapModal.compact-pins .geo-pin.is-selected .geo-pin-text, #mapModal.compact-pins .fd-pin.is-selected .fd-pin-detail{display:flex!important}
+.geo-pin.is-selected .geo-pin-dot{box-shadow:0 0 0 4px rgba(56,189,248,.42),0 3px 12px rgba(0,0,0,.5)}
 #pinViewToggle{border:1px solid #78b7dc;background:#164863;color:#fff;white-space:nowrap}
 #pinViewToggle[aria-pressed="true"]{border-color:#38bdf8;background:#0369a1}
 </style>
@@ -255,7 +258,7 @@ function pinZoneText(value){return (value||'').trim()}
 function renderPins(){
  clearPinDisplay();if(!baseW&&$('mapImage').classList.contains('hidden'))return;
  for(const p of pins){
-  const btn=document.createElement('button');btn.type='button';btn.className='fd-pin';btn.style.left=p.x_pct+'%';btn.style.top=p.y_pct+'%';btn.setAttribute('aria-label',(p.building||'연결송수구')+' 사진 확인');btn.title=p.building||'연결송수구';
+  const btn=document.createElement('button');btn.type='button';btn.className='fd-pin';btn.dataset.pinId=String(p.id);if(directionPin&&String(directionPin.id)===String(p.id))btn.classList.add('is-selected');btn.style.left=p.x_pct+'%';btn.style.top=p.y_pct+'%';btn.setAttribute('aria-label',(p.building||'연결송수구')+' 사진 확인');btn.title=p.building||'연결송수구';
   const dot=document.createElement('span');dot.className='fd-pin-dot';dot.textContent='●';btn.append(dot);
   const pressure=pinPressureText(p.pressure_range),zone=pinZoneText(p.supply_zone);
   if(Number(p.x_pct)>64)btn.classList.add('edge-right');
@@ -463,7 +466,7 @@ function renderGeoPins(){
   if(directionPin){directionPin=pins.find(p=>p.id===directionPin.id)||null;updateDirectionGuide()}
   clearGeoOverlays();if(!geoMap||!window.kakao?.maps)return;
  for(const p of pins){if(!isGeoPoint(p.latitude,p.longitude))continue;
-  const wrapper=document.createElement('button');wrapper.type='button';wrapper.className='geo-pin';wrapper.style.border='0';wrapper.style.padding='0';wrapper.style.background='transparent';wrapper.setAttribute('aria-label',(p.building||'연결송수구')+' 선택 시 거리·방향 안내');
+  const wrapper=document.createElement('button');wrapper.type='button';wrapper.className='geo-pin';wrapper.dataset.pinId=String(p.id);if(directionPin&&String(directionPin.id)===String(p.id))wrapper.classList.add('is-selected');wrapper.style.border='0';wrapper.style.padding='0';wrapper.style.background='transparent';wrapper.setAttribute('aria-label',(p.building||'연결송수구')+' 선택 시 거리·방향 안내');
   const dot=document.createElement('span');dot.className='geo-pin-dot';dot.textContent='●';wrapper.append(dot);
   const details=document.createElement('span');details.className='geo-pin-text';
   const building=document.createElement('span');building.textContent=p.building||'연결송수구';details.append(building);
@@ -500,11 +503,18 @@ $('retryAptLocation').onclick=async()=>{
 
 // === 3차: 빨간 송수구까지 직선거리와 북쪽 기준 방향 ===
 let directionPin=null;
+function syncSelectedPinLabels(){
+ const activeId=directionPin?.id == null ? '' : String(directionPin.id);
+ document.querySelectorAll('#kakaoMap .geo-pin[data-pin-id], #pinLayer .fd-pin[data-pin-id]').forEach(el=>{
+  el.classList.toggle('is-selected',!!activeId&&el.dataset.pinId===activeId);
+ });
+}
 function resetDirectionGuide(){
  directionPin=null;
- $('mapDirectionGuide').classList.add('hidden');$('mapDirectionRetry').classList.add('hidden')
+ $('mapDirectionGuide').classList.add('hidden');$('mapDirectionRetry').classList.add('hidden');
+ syncSelectedPinLabels();
 }
-function setDirectionPin(p){directionPin=p;updateDirectionGuide()}
+function setDirectionPin(p){directionPin=p;syncSelectedPinLabels();updateDirectionGuide()}
 function bearingDegrees(a,b){
  const rad=Math.PI/180,la1=a.lat*rad,la2=b.lat*rad,dl=(b.lng-a.lng)*rad;
  const y=Math.sin(dl)*Math.cos(la2),x=Math.cos(la1)*Math.sin(la2)-Math.sin(la1)*Math.cos(la2)*Math.cos(dl);
