@@ -177,7 +177,7 @@
 <p class="tiny muted" style="margin:6px 0 0">송수압력과 송수구역은 시설별 확인된 값만 입력하세요. 미입력 항목은 도면에 표시되지 않습니다.</p>
 <label for="pinMemo">설치 위치 메모<textarea id="pinMemo" maxlength="1000" placeholder="예: 101동 출입구 우측 외벽, 주차장 방향"></textarea></label>
 <label for="pinPhotoFile">실제 송수구 사진 (JPG · PNG · 최대 10MB)<input id="pinPhotoFile" type="file" accept="image/jpeg,image/png"></label>
-<div class="tiny muted" id="pinEditorPhotoState">사진 미등록</div>
+<div class="tiny muted" id="pinEditorPhotoState">사진 미등록</div><div id="exifFileDebug" class="tiny muted" style="margin:5px 0;white-space:pre-wrap" aria-live="polite"></div>
 <div id="exifGPSPanel" class="exif-gps-panel hidden"><strong id="exifGPSMessage">사진의 위치정보 확인 중</strong><div id="exifGPSWarning" class="tiny muted">사진의 GPS는 촬영자의 위치이며 송수구의 정확한 위치가 아닐 수 있습니다.</div><div class="exif-gps-actions"><button type="button" class="button blue hidden" id="exifApply">사진 좌표 적용</button><button type="button" class="button ghost" id="exifAdjust">지도에서 위치 확인·보정</button></div></div>
 <div class="tiny muted" id="pinEditorCoords"></div>
 <div class="pin-form-actions"><button type="button" class="button" id="pinEditorCancel">취소</button><button type="button" class="button red hidden" id="pinDelete">표식 삭제</button><button type="button" class="button ghost hidden" id="pinRelocate">위치 이동</button><button class="button blue" id="pinSave" type="submit">저장</button></div>
@@ -469,9 +469,9 @@ $('pinEditorForm').onsubmit=async e=>{
   closePinEditor();await fetchPins();showNotice(`${building} 표식 정보가 저장되었습니다.`,'success');
  }catch(err){if(newPath)await client.storage.from(BUCKET).remove([newPath]);$('pinEditorError').textContent='저장 실패: '+errorMessage(err)}finally{$('pinSave').disabled=false}
 };
-// 10차: 사진 속 EXIF GPS를 관리자 단말에서만 분석하고 확정된 좌표만 기존 저장 함수에 전달.
+// 10차 개선: 원본 EXIF 진단 추가. 사진 속 EXIF GPS를 관리자 단말에서만 분석하고 확정된 좌표만 기존 저장 함수에 전달.
 let exifCandidate=null,exifMarker=null,exifAdjustActive=false,exifAdjustOriginal=null,exifFileTicket=0;
-function resetEXIFGPS(){exifFileTicket++;exifCandidate=null;$('exifGPSPanel').classList.add('hidden');$('exifApply').classList.add('hidden');$('exifGPSMessage').textContent='사진의 위치정보 확인 중';$('exifGPSWarning').textContent='사진 GPS는 촬영자의 위치입니다. 지도를 확인하고 필요하면 위치를 보정하세요.';clearEXIFMarker();}
+function resetEXIFGPS(){exifFileTicket++;$('exifFileDebug').textContent='';exifCandidate=null;$('exifGPSPanel').classList.add('hidden');$('exifApply').classList.add('hidden');$('exifGPSMessage').textContent='사진의 위치정보 확인 중';$('exifGPSWarning').textContent='사진 GPS는 촬영자의 위치입니다. 지도를 확인하고 필요하면 위치를 보정하세요.';clearEXIFMarker();}
 function clearEXIFMarker(){if(exifMarker){try{exifMarker.setMap(null)}catch(_){}exifMarker=null;}}
 function exifCoordinatesText(lat,lng){return `위도 ${lat.toFixed(6)} · 경도 ${lng.toFixed(6)}`;}
 function setEXIFEditorCoords(lat,lng){const form=$('pinEditorForm');form.dataset.lat=String(lat);form.dataset.lng=String(lng);$('pinEditorCoords').textContent='현재 저장 예정 좌표: '+exifCoordinatesText(lat,lng);}
@@ -531,6 +531,25 @@ function exifExtractGPS(buffer){
  }
  return null;
 }
+// 선택된 파일 자체의 EXIF 존재 여부를 현장에서 확인하는 진단 표시. GPS 데이터는 외부로 전송하지 않음.
+function exifInspectFile(buffer){
+ const v=new DataView(buffer),size=v.byteLength;
+ if(size<8)return '파일이 너무 작습니다';
+ if(v.getUint16(0,false)===0xffd8){
+  let p=2,exifs=0;
+  while(p+4<=size){if(v.getUint8(p)!==255)break;while(p<size&&v.getUint8(p)===255)p++;
+   if(p>=size)break;const marker=v.getUint8(p++);if(marker===218||marker===217)break;
+   if(marker===1||(marker>=208&&marker<=215))continue;
+   if(p+2>size)break;const n=v.getUint16(p,false);if(n<2||p+n>size)break;
+   const start=p+2;
+   if(marker===225&&start+6<=size&&v.getUint32(start,false)===0x45786966&&v.getUint16(start+4,false)===0)exifs++;
+   p+=n;
+  }
+  return exifs?`JPG · EXIF 영역 ${exifs}개 확인`:'JPG · EXIF 영역 없음 (위치정보 제외 가능성)';
+ }
+ if(v.getUint32(0,false)===0x89504e47)return 'PNG (사진 변환 시 GPS가 삭제되는 경우가 많음)';
+ return 'JPG/PNG 원본 형식이 아니거나 변환된 파일';
+}
 function refreshEXIFPanel(){
  if(!exifCandidate)return;
  const {latitude:lat,longitude:lng}=exifCandidate;
@@ -549,12 +568,17 @@ $('pinPhotoFile').addEventListener('change',async()=>{
  exifCandidate=null;$('exifApply').classList.add('hidden');$('exifGPSPanel').classList.toggle('hidden',!file);
  if(!file)return;
  $('exifGPSMessage').textContent='사진 GPS 좌표 확인 중…';
- if(!['image/jpeg','image/png'].includes(file.type)){$('exifGPSMessage').textContent='GPS 분석은 JPG 또는 PNG 원본 사진만 지원합니다.';return;}
+ const kind=/\.(jpe?g)$/i.test(file.name)||file.type==='image/jpeg'?'jpeg':/\.png$/i.test(file.name)||file.type==='image/png'?'png':'unsupported';
+ $('exifFileDebug').textContent=`선택한 파일: ${file.name} · ${(file.size/1024/1024).toFixed(2)} MB · ${file.type||'유형 미표시'}`;
+ if(kind==='unsupported'){$('exifGPSMessage').textContent='GPS 분석은 JPG 또는 PNG 원본 사진만 지원합니다.';return;}
  try{
-  const coords=exifExtractGPS(await file.arrayBuffer());if(ticket!==exifFileTicket)return;
+  const bytes=await file.arrayBuffer();if(ticket!==exifFileTicket)return;
+  const inspection=exifInspectFile(bytes);
+  $('exifFileDebug').textContent+=`\n파일 분석: ${inspection}`;
+  const coords=exifExtractGPS(bytes);if(ticket!==exifFileTicket)return;
   if(!coords||!isGeoPoint(coords.latitude,coords.longitude)){
-   $('exifGPSMessage').textContent='사진에 사용 가능한 GPS 좌표가 없습니다.';
-   $('exifGPSWarning').textContent='카메라 위치 태그와 원본 전송 여부를 확인하거나 「지도에서 위치 확인·보정」으로 직접 지정하세요.';
+   $('exifGPSMessage').textContent='선택된 사진 파일에서 GPS 좌표를 찾지 못했습니다.';
+   $('exifGPSWarning').textContent='갤러리에서 위치가 보이더라도 웹 앱에 전달된 사진의 EXIF가 삭제되었을 수 있습니다. 「내 파일」에서 DCIM/Camera 원본 JPG를 직접 선택하거나 USB로 옮긴 원본을 사용해 보세요. 사진을 다시 촬영할 필요는 없습니다.';
    return;
   }
   exifCandidate=coords;refreshEXIFPanel();
