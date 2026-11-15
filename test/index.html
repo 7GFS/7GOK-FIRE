@@ -257,7 +257,7 @@ async function fetchPins(){
  const {data,error}=await client.from('standpipe_pins').select('id,apartment_id,x_pct,y_pct,latitude,longitude,building,memo,pressure_range,supply_zone,photo_path,updated_at').eq('apartment_id',aptId).order('created_at',{ascending:true});
  if(ticket!==pinLoadToken||!selected||selected.id!==aptId)return;
  if(error){$('geoStatus').textContent='송수구 조회 실패: '+errorMessage(error)+' · Supabase 1차 SQL을 실행했는지 확인하세요.';return}
- pins=data||[];renderPins();updatePinModeUI();
+ pins=data||[];renderPins();if(geoMap&&selected&&selected.id===aptId)renderGeoPins();updatePinModeUI();
  if(activePhotoPin){const found=pins.find(p=>p.id===activePhotoPin.id);if(!found){closePinPhoto()}else if(found.updated_at!==activePhotoPin.updated_at){void openPinPhoto(found)}}
 }
 function getPinCoords(e){
