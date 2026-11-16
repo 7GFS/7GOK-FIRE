@@ -80,7 +80,7 @@
 #mapModal.kakao-view #landscapeToggle,#mapModal.kakao-view #uploadButton,#mapModal.kakao-view #deleteButton{display:none!important}
 .geo-pin{display:flex;align-items:center;gap:7px;transform:translate(-15px,-15px);cursor:pointer;user-select:none;touch-action:manipulation}
 .geo-pin-dot{display:grid;place-items:center;flex:none;width:30px;height:30px;border:3px solid #fff;background:#dc2626;border-radius:50%;box-shadow:0 1px 8px #0009;color:white;font-size:10px}
-.geo-pin-text{display:flex;flex-direction:column;gap:2px;max-width:180px;border:1px solid rgba(255,255,255,.65);background:rgba(9,17,30,.6);color:white;padding:5px 7px;border-radius:8px;font-size:11px;font-weight:750;line-height:1.25;pointer-events:none}
+.geo-pin-text{display:flex;flex-direction:column;gap:3px;max-width:210px;border:1px solid rgba(255,255,255,.65);background:rgba(9,17,30,.6);color:white;padding:6px 8px;border-radius:8px;font-size:11px;font-weight:750;line-height:1.3;pointer-events:none;text-align:left;white-space:normal;overflow-wrap:anywhere}.geo-pin-text .geo-pin-title{font-weight:850;text-align:center;width:100%}.geo-pin-text .geo-pin-line{display:block;text-align:left;width:100%}
 .geo-pin-text b{color:#fde68a}
 .geo-map-control{display:flex;gap:7px;align-items:center;padding:7px 11px;background:#102338;border-top:1px solid #30465e;flex-wrap:wrap}
 .geo-map-control .button{font-size:12px;min-height:36px;padding:7px 10px}
@@ -1001,9 +1001,10 @@ function renderGeoPins(){
   const wrapper=document.createElement('button');wrapper.type='button';wrapper.className='geo-pin';wrapper.dataset.pinId=String(p.id);if(directionPin&&String(directionPin.id)===String(p.id))wrapper.classList.add('is-selected');wrapper.style.border='0';wrapper.style.padding='0';wrapper.style.background='transparent';wrapper.setAttribute('aria-label',(p.building||'연결송수구')+' 선택 시 거리·방향 안내');
   const dot=document.createElement('span');dot.className='geo-pin-dot';dot.textContent='●';wrapper.append(dot);
   const details=document.createElement('span');details.className='geo-pin-text';
-  const building=document.createElement('span');building.textContent=p.building||'연결송수구';details.append(building);
-  if(p.pressure_range){const span=document.createElement('span');span.textContent='압력범위: '+p.pressure_range;details.append(span)}
-  if(p.supply_zone){const span=document.createElement('span');span.textContent='송수구역: '+p.supply_zone;details.append(span)}
+  const building=document.createElement('span');building.className='geo-pin-title';building.textContent=p.building||'연결송수구';details.append(building);
+  if(p.pressure_range){const span=document.createElement('span');span.className='geo-pin-line';span.textContent='압력범위: '+p.pressure_range;details.append(span)}
+  if(p.supply_zone){const span=document.createElement('span');span.className='geo-pin-line';span.textContent='송수구역: '+p.supply_zone;details.append(span)}
+  if(p.memo&&String(p.memo).trim()){const span=document.createElement('span');span.className='geo-pin-line';span.textContent='설치위치: '+String(p.memo).trim();details.append(span)}
   wrapper.append(details);wrapper.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(!pinMode)setDirectionPin(p)});
   const overlay=new kakao.maps.CustomOverlay({map:geoMap,position:new kakao.maps.LatLng(Number(p.latitude),Number(p.longitude)),content:wrapper,xAnchor:0,yAnchor:0,zIndex:5,clickable:true});
   geoOverlays.push(overlay);
