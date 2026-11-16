@@ -375,16 +375,23 @@
 /* 현장 지도 화면 간소화: 축소·확대 및 카카오맵 설명줄 숨김 (기능 로직 유지) */
 #mapModal #minus,#mapModal #plus,#mapModal #mapMeta{display:none!important}
 
-/* 지도 첫 진입 시 안내문만 3회 점멸한 뒤 고정 */
-@keyframes pinHintIntroBlink {
-  0%, 100% {opacity:1;}
-  45%, 55% {opacity:.18;}
+/* 첫 지도 진입: 중앙에서 3회 점멸 → 상단으로 이동 → 고정 */
+#mapModal #viewer > #pinHint {
+  transition:top .65s cubic-bezier(.2,.8,.2,1), transform .65s cubic-bezier(.2,.8,.2,1);
+  will-change:top,transform;
 }
-#pinHint.first-entry-blink {
+#mapModal #viewer > #pinHint.first-entry-blink {
+  top:50%;
+  transform:translateY(-50%);
   animation:pinHintIntroBlink .62s ease-in-out 3;
 }
+@keyframes pinHintIntroBlink {
+  0%,100% {opacity:1;}
+  45%,55% {opacity:.18;}
+}
 @media (prefers-reduced-motion: reduce) {
-  #pinHint.first-entry-blink {animation:none;}
+  #mapModal #viewer > #pinHint {transition:none;will-change:auto;}
+  #mapModal #viewer > #pinHint.first-entry-blink {animation:none;top:10px;transform:none;}
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script><script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=18820ad8685fae11b158e2776eaeeddc&libraries=services&autoload=false" defer></script></head><body>
@@ -578,8 +585,17 @@ function setPinViewMode(detailsVisible){
 }
 $('pinViewToggle').addEventListener('click',()=>setPinViewMode($('mapModal').classList.contains('compact-pins')));
 let pinHintIntroPlayed=false;
-function showMap(a){if(!pinHintIntroPlayed){pinHintIntroPlayed=true;$('pinHint').classList.add('first-entry-blink')}if(!selected){setManualLandscape(false)}setPinViewMode(false);resetDirectionGuide();selected=a;pinMode='';pins=[];clearPinDisplay();$('mapName').textContent=a.name;$('mapAddress').textContent=a.address;$('mapModal').classList.remove('hidden');$('mapModal').classList.add('kakao-view');updateUI();void loadKakaoMap();void fetchPins()}
-function hideMap(){stopEXIFAdjust();resetDirectionGuide();setManualLandscape(false);mapToken++;pinLoadToken++;selected=null;pinMode='';closePinPhoto();closePinEditor();pins=[];clearPinDisplay();$('mapModal').classList.add('hidden');$('mapModal').classList.remove('kakao-view');disposeKakaoMap();$('mapImage').classList.add('hidden');$('mapImage').removeAttribute('src')}
+// 첫 지도 열기에서만 점멸. 애니메이션 종료 후 기존 상단 위치로 부드럽게 복귀합니다.
+$('pinHint').addEventListener('animationend', e=>{
+  if(e.animationName==='pinHintIntroBlink') $('pinHint').classList.remove('first-entry-blink');
+});
+function showMap(a){if(!pinHintIntroPlayed){
+  pinHintIntroPlayed=true;
+  if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    $('pinHint').classList.add('first-entry-blink');
+  }
+}if(!selected){setManualLandscape(false)}setPinViewMode(false);resetDirectionGuide();selected=a;pinMode='';pins=[];clearPinDisplay();$('mapName').textContent=a.name;$('mapAddress').textContent=a.address;$('mapModal').classList.remove('hidden');$('mapModal').classList.add('kakao-view');updateUI();void loadKakaoMap();void fetchPins()}
+function hideMap(){$('pinHint').classList.remove('first-entry-blink');stopEXIFAdjust();resetDirectionGuide();setManualLandscape(false);mapToken++;pinLoadToken++;selected=null;pinMode='';closePinPhoto();closePinEditor();pins=[];clearPinDisplay();$('mapModal').classList.add('hidden');$('mapModal').classList.remove('kakao-view');disposeKakaoMap();$('mapImage').classList.add('hidden');$('mapImage').removeAttribute('src')}
 function updateMapMeta(){if(!selected)return;const date=selected.updated_at?new Date(selected.updated_at).toLocaleString('ko-KR'):'미기록';$('mapMeta').textContent='';$('deleteButton').classList.toggle('hidden',!isAdmin||!selected.map_path);updatePinModeUI()}
 async function loadMap(){const ticket=++mapToken,a=selected;if(!a)return;const img=$('mapImage');img.classList.add('hidden');img.removeAttribute('src');$('mapStage').style.display='none';$('noMap').classList.remove('hidden');$('noMap').textContent=a.map_path?'도면을 불러오는 중입니다.':'등록된 위치도가 없습니다. 관리자 모드에서 업로드하세요.';baseW=0;updateMapMeta();if(!a.map_path)return;try{const {data,error}=await client.storage.from(BUCKET).createSignedUrl(a.map_path,60*15);if(error)throw error;if(ticket!==mapToken)return;img.onload=()=>{if(ticket!==mapToken)return;img.classList.remove('hidden');$('noMap').classList.add('hidden');$('mapStage').style.display='block';resetView();renderPins()};img.onerror=()=>{if(ticket===mapToken)$('noMap').textContent='이미지 표시 실패: 네트워크·권한을 확인하세요.'};img.src=data.signedUrl}catch(e){if(ticket===mapToken)$('noMap').textContent='도면 불러오기 실패: '+errorMessage(e)}}
 function applyTransform(){if(!baseW)return;const stage=$('mapStage');stage.style.width=baseW+'px';stage.style.height=baseH+'px';stage.style.transform=`translate(calc(-50% + ${tx}px),calc(-50% + ${ty}px)) scale(${scale})`;$('pinLayer').style.setProperty('--pin-inverse',String(1/scale))}
