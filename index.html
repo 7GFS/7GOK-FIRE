@@ -1092,7 +1092,7 @@ function resetDirectionGuide(){
  $('mapDirectionGuide').classList.add('hidden');$('mapDirectionRetry').classList.add('hidden');
  syncSelectedPinLabels();
 }
-function setDirectionPin(p){directionPin=p;syncSelectedPinLabels();updateDirectionGuide()}
+function setDirectionPin(p){directionPin=p;syncSelectedPinLabels();updateDirectionGuide();if(!compassHandler)void startCompass(true)}
 function bearingDegrees(a,b){
  const rad=Math.PI/180,la1=a.lat*rad,la2=b.lat*rad,dl=(b.lng-a.lng)*rad;
  const y=Math.sin(dl)*Math.cos(la2),x=Math.cos(la1)*Math.sin(la2)-Math.sin(la1)*Math.cos(la2)*Math.cos(dl);
@@ -1100,7 +1100,7 @@ function bearingDegrees(a,b){
 }
 // 이동방향이 아니라 휴대전화의 실제 방위(나침반)를 기준으로 화살표를 회전합니다.
 // 센서를 사용할 수 없으면 기존 북쪽 기준 방향표시를 유지합니다.
-let compassHeading=null,compassActive=false,compassHandler=null,compassLastUpdate=0;
+let compassHeading=null,compassActive=false,compassHandler=null,compassLastUpdate=0,compassRetryVisible=false,compassWaitTimer=null;
 function normalizeHeading(degree){return ((degree%360)+360)%360}
 function deviceCompassHeading(event){
  // iOS Safari의 절대 북쪽 기준 값(도 단위).
@@ -1119,34 +1119,52 @@ function handleDeviceCompass(event){
  const now=Date.now();
  if(now-compassLastUpdate<90)return;
  compassLastUpdate=now;
- compassHeading=heading;compassActive=true;
+ compassHeading=heading;compassActive=true;compassRetryVisible=false;
+ if(compassWaitTimer){clearTimeout(compassWaitTimer);compassWaitTimer=null}
  if(directionPin)updateDirectionGuide();
 }
 function stopCompass(){
  if(compassHandler){window.removeEventListener('deviceorientationabsolute',compassHandler,true);window.removeEventListener('deviceorientation',compassHandler,true)}
- compassHandler=null;compassHeading=null;compassActive=false;
- const btn=$('mapCompassStart');if(btn){btn.disabled=false;btn.textContent='나침반 켜기'}
+ compassHandler=null;compassHeading=null;compassActive=false;compassRetryVisible=false;
+ if(compassWaitTimer){clearTimeout(compassWaitTimer);compassWaitTimer=null}
+ const btn=$('mapCompassStart');if(btn){btn.disabled=false;btn.classList.add('hidden');btn.textContent='나침반 다시 시도'}
 }
-async function startCompass(){
- const btn=$('mapCompassStart');btn.disabled=true;
+async function startCompass(automatic=false){
+ // 송수구 표식을 터치하는 즉시 센서 연결을 시도합니다.
+ // iOS처럼 별도 권한이 필요한 경우에는 표식 터치 자체가 사용자 제스처가 됩니다.
+ const btn=$('mapCompassStart');
+ if(compassHandler||compassActive)return;
+ btn.disabled=true;compassRetryVisible=false;btn.classList.add('hidden');
  try{
-  if(!window.isSecureContext)throw Error('HTTPS 연결에서만 나침반을 사용할 수 있습니다.');
-  if(!('DeviceOrientationEvent'in window))throw Error('이 브라우저는 방향 센서를 지원하지 않습니다.');
+  if(!window.isSecureContext)throw Error('HTTPS 환경이 아닙니다.');
+  if(!('DeviceOrientationEvent' in window))throw Error('방향 센서를 지원하지 않습니다.');
   if(typeof DeviceOrientationEvent.requestPermission==='function'){
    const result=await DeviceOrientationEvent.requestPermission();
-   if(result!=='granted')throw Error('동작·방향 센서 권한이 허용되지 않았습니다.');
+   if(result!=='granted')throw Error('방향 센서 권한이 거부되었습니다.');
   }
-  if(!compassHandler){
-   compassHandler=handleDeviceCompass;
-   window.addEventListener('deviceorientationabsolute',compassHandler,true);
-   window.addEventListener('deviceorientation',compassHandler,true);
-  }
-  btn.textContent='나침반 연결 중';
-  // 이벤트 수신 전에는 기존 북쪽 기준 화살표가 계속 표시됩니다.
+  compassHandler=handleDeviceCompass;
+  window.addEventListener('deviceorientationabsolute',compassHandler,true);
+  window.addEventListener('deviceorientation',compassHandler,true);
+  compassWaitTimer=setTimeout(()=>{
+   compassWaitTimer=null;
+   if(!compassActive){
+    // 방향 센서가 응답하지 않으면 북쪽 기준 방향을 유지하고 재시도 허용
+    if(compassHandler){
+     window.removeEventListener('deviceorientationabsolute',compassHandler,true);
+     window.removeEventListener('deviceorientation',compassHandler,true);
+    }
+    compassHandler=null;compassRetryVisible=true;updateDirectionGuide();
+   }
+  },3000);
   updateDirectionGuide();
- }catch(e){btn.disabled=false;btn.textContent='나침반 다시 켜기';alert('나침반 사용 불가: '+e.message+'\n기존 북쪽 기준 방향표시는 계속 사용할 수 있습니다.')}
+ }catch(e){
+  compassRetryVisible=true;
+  updateDirectionGuide();
+  // 자동 연결 실패 시 경고창은 띄우지 않고 재시도 버튼만 표시합니다.
+  if(!automatic)alert('나침반 연결 불가: '+e.message+'\n북쪽 기준 방향 안내는 계속 사용할 수 있습니다.');
+ }
 }
-$('mapCompassStart').onclick=()=>void startCompass();
+$('mapCompassStart').onclick=()=>void startCompass(false);
 function updateDirectionGuide(){
  const p=directionPin;
  const valid=!!p&&isGeoPoint(p.latitude,p.longitude)&&!!geoMap;
@@ -1172,9 +1190,9 @@ function updateDirectionGuide(){
  $('mapDirectionNote').textContent=note;
  $('mapDirectionArrow').style.transform=`rotate(${angle}deg)`;
  $('mapDirectionRetry').classList.toggle('hidden',!oldGps);
- $('mapCompassStart').classList.toggle('hidden',!(valid&&('DeviceOrientationEvent'in window)));
- $('mapCompassStart').textContent=compassActive?'나침반 작동 중':(compassHandler?'나침반 연결 중':'나침반 켜기');
- $('mapCompassStart').disabled=compassActive||!!compassHandler;
+ $('mapCompassStart').classList.toggle('hidden',!(valid&&compassRetryVisible));
+ $('mapCompassStart').textContent='나침반 다시 시도';
+ $('mapCompassStart').disabled=false;
 }
 $('mapDirectionClose').onclick=resetDirectionGuide;
 $('mapDirectionPhoto').onclick=()=>{
