@@ -3942,13 +3942,15 @@ function nearCard(a,dist,verified){
  const b=document.createElement('button');b.type='button';b.className='nearby-card';
  const left=document.createElement('span'),name=document.createElement('strong'),address=document.createElement('small'),right=document.createElement('span');
  name.textContent=a.name;address.textContent=a.address+(verified?' · 위치 확인됨':' · 주소 기반 추정');right.className='nearby-distance';right.textContent=readableDistance(dist);
- left.append(name,address);b.append(left,right);b.onclick=()=>showMap(a);return b;
+ left.append(name);
+ if(isDemoApt(a)){const badge=document.createElement('span');badge.className='nearby-demo-badge';badge.textContent='시연용';left.append(badge)}
+ left.append(address);b.append(left,right);b.onclick=()=>showMap(a);return b;
 }
 function nearResultsDisplay(near,complete,errorCount){
  const box=$('nearbyResults'),cards=$('nearbyCards');box.classList.remove('hidden');cards.replaceChildren();
- const total=allApts().filter(a=>!isDemoApt(a)).length,done=near.size+errorCount;
+ const total=allApts().filter(a=>!isDemoApt(a)).length,officialFound=[...near.values()].filter(v=>!isDemoApt(v.a)).length,done=officialFound+errorCount;
  const ranks=[...near.values()].sort((a,b)=>a.dist-b.dist).slice(0,3);
- $('nearbyTitle').textContent=complete?`가까운 아파트 ${ranks.length}곳 · ${total}개 단지 중 ${near.size}개 위치 확인${errorCount?' ('+errorCount+'개 주소 조회 실패)':''}`:`아파트 위치 확인 중 ${done}/${total} · 현재까지 가까운 단지 (검색 완료 후 순위 확정)`;
+ $('nearbyTitle').textContent=complete?`가까운 대상 ${ranks.length}곳 · ${total}개 단지 중 ${officialFound}개 위치 확인${errorCount?' ('+errorCount+'개 주소 조회 실패)':''}`:`아파트 위치 확인 중 ${done}/${total} · 현재까지 가까운 대상 (검색 완료 후 순위 확정)`;
  for(const v of ranks)cards.append(nearCard(v.a,v.dist,v.verified));
  if(!ranks.length){const p=document.createElement('div');p.className='small muted';p.textContent='아파트 위치를 확인하는 중입니다. 필요하면 아래에서 아파트를 직접 검색하세요.';cards.append(p)}
 }
@@ -3964,6 +3966,18 @@ $('findNearby').onclick=async()=>{
   nearResultsDisplay(near,false,0);
   await getKakaoSDK();
   if(token!==nearTaskId)return;
+  // 시연용 칠곡소방서는 실제 본서 근처(300m 이내)에서 검색할 때만 후보에 포함.
+  // 다른 장소에서는 일반 아파트 58개 대상만 순위에 사용한다.
+  try{
+   const demo=allApts().find(isDemoApt);
+   if(demo){const p=await apartmentCoordinates(demo);if(token!==nearTaskId)return;
+    if(isGeoPoint(p.lat,p.lng)){
+     const distance=distanceM(pos,p);
+     if(distance<=300)near.set(demo.id,{a:demo,dist:distance,verified:p.verified});
+    }
+   }
+  }catch(_){/* 시연용 위치 확인 실패는 일반 단지 검색에 영향 없음 */}
+  nearResultsDisplay(near,false,errorCount);
   const worker=async()=>{
    while(token===nearTaskId){
     const i=next++;if(i>=apps.length)break;
@@ -4540,4 +4554,12 @@ schedule();
  if(typeof ResizeObserver!=='undefined')new ResizeObserver(queue).observe(header);
  queue();
 })();
+</script><style id="release-footer-and-demo-nearby">
+#nearbyResults .nearby-demo-badge{display:inline-block;margin:3px 0 0 6px;padding:1px 5px;border:1px solid #EA580C;border-radius:5px;color:#9A3412;background:transparent;font-size:10px;font-weight:600;vertical-align:middle;line-height:1.5}
+#nearbyResults.nearby-results{position:relative;z-index:1;margin:10px 0 12px;}
+footer.footer .app-version-info{margin-top:13px;padding-top:10px;text-align:center;color:#94A3B8;font-size:11px;font-weight:400;letter-spacing:.02em}
+</style><script id="nearby-results-scroll-with-list">
+(function(){const fixedPanel=document.querySelector('.hero-search-stage > .main-search-panel:not(.sticky-summary-shell)');const results=document.getElementById('nearbyResults');if(fixedPanel&&results)fixedPanel.after(results)})();
+</script><script id="release-version-info">
+(function(){const footer=document.querySelector('main.wrap footer.footer');if(!footer)return;const info=document.createElement('div');info.className='app-version-info';info.textContent='Version 1.3.0 · Build 77';footer.append(info)})();
 </script></body></html>
