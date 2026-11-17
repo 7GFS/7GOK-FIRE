@@ -2466,7 +2466,7 @@ button, .button, input, select, #list .apt{
 <div class="nearby-controls"><button class="button blue" id="findNearby" type="button">⌖ 내 주변 아파트 찾기</button><span class="small muted">위치 권한을 허용하면 가까운 단지를 추천합니다.</span></div>
 <section aria-live="polite" class="nearby-results hidden" id="nearbyResults"><div class="nearby-title" id="nearbyTitle"></div><div class="nearby-cards" id="nearbyCards"></div></section>
 <div class="search-summary orange-status-accent"><div class="counts"><span class="count-heading-wrap"><strong id="count">58개 단지</strong><span class="demo-count-badge" id="demoCountBadge">시연용 1개 포함</span></span><span class="muted" id="registered">도면 등록 확인 중</span></div><p class="apartment-coverage-notice" id="apartmentCoverageNotice">※ 2005. 1. 1. 이전 사용승인된 아파트 대상</p><div class="status"><i class="dot" id="dot"></i><span id="connection">Supabase 연결 설정 대기</span></div></div></section></div><section class="panel adminbar hidden" id="adminBar"><div><strong>관리자 모드</strong><div class="tiny muted" id="adminState">위치도 등록·수정 가능</div></div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><button class="button blue" id="dashboardOpen" type="button">구축 현황판</button><button class="button ghost" id="issueAdminOpen" type="button">오류 신고 관리 <span id="issuePendingCount"></span></button><button class="button ghost" id="demoRegister" type="button">시연용 대상 등록</button><button class="button blue" id="seed">기본 58개 단지 등록</button></div></section><div class="alert hidden" id="notice" role="status"></div><section aria-live="polite" class="list" id="list"></section><footer class="footer">※ 실제 출동 시 시설 위치와 최신 등록정보를 확인하세요.<br/>※ 카카오맵과 송수구 사진 조회에는 인터넷 연결이 필요합니다. URL을 아는 사람은 누구나 조회할 수 있으므로 공유 범위에 유의하세요. 일반 대원은 로그인 없이 조회 가능하며, 관리자만 로그인합니다.</footer></main>
-<div aria-label="위치도 확인" aria-modal="true" class="modal hidden" id="mapModal" role="dialog"><div class="modal-top"><div style="min-width:0"><div id="mapName" style="font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div><div class="small muted" id="mapAddress"></div><div aria-live="polite" class="map-last-updated" id="mapLastUpdated">위치정보 최종 수정: 확인 중</div></div><button class="button" id="mapClose">닫기 ×</button></div><div aria-hidden="true" class="mapmeta hidden" id="mapMeta"></div><div class="no-standpipe-control hidden" id="noStandpipeControl"><span class="notice" id="noStandpipeState">송수구 설치 여부: 확인 전</span><button class="button ghost" id="noStandpipeToggle" type="button">송수구 없음으로 지정</button></div><div class="viewer" id="viewer"><div aria-label="카카오맵 아파트 단지 및 송수구 위치" class="hidden" id="kakaoMap"></div><div class="map-stage" id="mapStage"><img alt="연결송수구 위치도" class="hidden" id="mapImage"/><div aria-label="연결송수구 위치 표식" class="pin-layer" id="pinLayer"></div></div><div class="viewer-text" id="noMap">위치도를 확인 중입니다.</div><div class="map-hint" id="pinHint"><span aria-hidden="true" class="map-hint-icon">●</span><span class="map-hint-text"><strong>빨간 표식(●)을 터치하세요!</strong> 선택한 송수구까지의 거리·방향을 확인하고, 사진은 별도 버튼으로 볼 수 있습니다.</span></div><div class="map-bottom-stack"><div aria-live="off" class="direction-guide hidden" id="mapDirectionGuide" role="status"><div aria-hidden="true" class="direction-arrow"><span id="mapDirectionArrow">↑</span></div><div class="direction-body"><strong id="mapDirectionTitle">선택한 송수구</strong><div id="mapDirectionValue">위치 확인 필요</div><div class="direction-note" id="mapDirectionNote">직선거리 · 북쪽 기준 방위(실제 진입로와 다름)</div></div><div class="direction-actions"><div class="direction-actions-left"><button aria-label="송수구 사진·정보 보기" class="direction-thumbnail" id="mapDirectionThumb" type="button"><img alt="송수구 사진 미리보기" class="hidden" id="mapDirectionThumbImg"/><span id="mapDirectionThumbEmpty">사진 미등록</span></button><button class="direction-photo-button" id="mapDirectionPhoto" type="button">사진·정보 보기</button><button class="issue-link" id="mapDirectionReport" type="button">정보 오류 신고</button><button id="mapCompassStart" type="button">나침반 켜기</button><button class="hidden" id="mapDirectionRetry" type="button">위치 다시 확인</button></div><button id="mapDirectionClose" type="button">안내 닫기</button></div></div><div class="toolbar"><button aria-label="송수구 상세정보 보기" aria-pressed="false" class="button" id="pinViewToggle" type="button">상세 보기</button><button class="button blue" id="mapMyLocation" type="button">◎ 내 위치</button><button aria-label="단지 전체 보기 (화면 맞춤)" class="button" id="reset">단지보기</button><button aria-hidden="true" class="button hidden" id="minus" tabindex="-1">− 축소</button><button aria-hidden="true" class="button hidden" id="plus" tabindex="-1">+ 확대</button><button aria-pressed="false" class="button blue" id="landscapeToggle" type="button">⤢ 가로 보기</button><button class="button blue hidden" id="uploadButton">도면 등록·교체</button><button class="button red hidden" id="deleteButton">도면 삭제</button><button class="button blue hidden" id="addPinButton">● 송수구 표식 추가</button><button class="button ghost hidden" id="addPinFromGPS" type="button">사진 GPS로 위치 등록</button><button class="button blue hidden" id="batchOpen" type="button">사진 일괄 등록</button><button class="button ghost hidden" id="cancelPinButton">위치 지정 취소</button><input accept="image/png,image/jpeg" class="hidden" id="fileInput" type="file"/></div></div></div><div class="geo-map-control hidden" id="geoMapControl"><span class="geo-status" id="geoStatus">아파트 주소를 지도에서 찾는 중입니다.</span><div aria-label="GPS 위치 신뢰도" class="gps-quality-panel" id="gpsQualityPanel"><div class="gps-quality-row"><span aria-hidden="true" class="gps-quality-dot is-pending" id="gpsQualityDot"></span><span class="gps-line" id="gpsMapInfo" role="status">아파트 지도를 열면 GPS 위치 확인을 자동으로 시도합니다.</span><button class="button gps-retry" id="gpsRetryButton" type="button">위치 재측정</button></div><div class="gps-quality-warning hidden" id="gpsQualityWarning" role="status">GPS 오차가 큽니다. 건물 밖에서 재측정하고 송수구 사진·현장 구조물을 확인하세요.</div></div><div aria-label="기존 표식의 지도 좌표 재지정" class="geo-legacy hidden" id="geoLegacy"></div><button class="button blue hidden" id="confirmAptLocation" type="button">단지 중심 위치 확정</button><button class="button ghost hidden" id="retryAptLocation" type="button">주소 재검색</button></div></div>
+<div aria-label="위치도 확인" aria-modal="true" class="modal hidden" id="mapModal" role="dialog"><div class="modal-top"><div style="min-width:0"><div id="mapName" style="font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div><div class="small muted" id="mapAddress"></div><div aria-live="polite" class="map-last-updated" id="mapLastUpdated">위치정보 최종 수정: 확인 중</div></div><button class="button" id="mapClose">닫기 ×</button></div><div aria-hidden="true" class="mapmeta hidden" id="mapMeta"></div><div class="no-standpipe-control hidden" id="noStandpipeControl"><span class="notice" id="noStandpipeState">송수구 설치 여부: 확인 전</span><button class="button ghost" id="noStandpipeToggle" type="button">송수구 없음으로 지정</button></div><div class="viewer" id="viewer"><div aria-label="카카오맵 아파트 단지 및 송수구 위치" class="hidden" id="kakaoMap"></div><div class="map-stage" id="mapStage"><img alt="연결송수구 위치도" class="hidden" id="mapImage"/><div aria-label="연결송수구 위치 표식" class="pin-layer" id="pinLayer"></div></div><div class="viewer-text" id="noMap">위치도를 확인 중입니다.</div><div class="map-hint" id="pinHint"><span aria-hidden="true" class="map-hint-icon">●</span><span class="map-hint-text"><strong>빨간 표식(●)을 터치하세요!</strong> 선택한 송수구까지의 거리·방향을 확인하고, 사진은 별도 버튼으로 볼 수 있습니다.</span></div><div class="map-bottom-stack"><div aria-live="off" class="direction-guide hidden" id="mapDirectionGuide" role="status"><div aria-hidden="true" class="direction-arrow"><span id="mapDirectionArrow">↑</span></div><div class="direction-body"><strong id="mapDirectionTitle">선택한 송수구</strong><div id="mapDirectionValue">위치 확인 필요</div><div class="direction-note" id="mapDirectionNote">직선거리 · 북쪽 기준 방위(실제 진입로와 다름)</div></div><div class="direction-actions"><div class="direction-actions-left"><button aria-label="송수구 사진·정보 보기" class="direction-thumbnail" id="mapDirectionThumb" type="button"><img alt="송수구 사진 미리보기" class="hidden" id="mapDirectionThumbImg"/><span id="mapDirectionThumbEmpty">사진 미등록</span></button><button class="direction-photo-button" id="mapDirectionPhoto" type="button">사진·정보 보기</button><button class="issue-link" id="mapDirectionReport" type="button">정보 오류 신고</button><button id="mapCompassStart" type="button">나침반 켜기</button><button class="hidden" id="mapDirectionRetry" type="button">위치 다시 확인</button></div><button id="mapDirectionClose" type="button">안내 닫기</button></div></div><div class="toolbar"><button aria-label="송수구 상세정보 보기" aria-pressed="false" class="button" id="pinViewToggle" type="button">상세 보기</button><button class="button blue" id="mapMyLocation" type="button">◎ 내 위치</button><button aria-label="단지 전체 보기 (화면 맞춤)" class="button" id="reset">단지보기</button><button aria-hidden="true" class="button hidden" id="minus" tabindex="-1">− 축소</button><button aria-hidden="true" class="button hidden" id="plus" tabindex="-1">+ 확대</button><button aria-pressed="false" class="button blue" id="landscapeToggle" type="button">⤢ 가로 보기</button><button class="button blue hidden" id="uploadButton">도면 등록·교체</button><button class="button red hidden" id="deleteButton">도면 삭제</button><button class="button blue hidden" id="addPinButton">● 송수구 표식 추가</button><button class="button ghost hidden" id="addPinFromGPS" type="button">사진 GPS로 위치 등록</button><button class="button blue hidden" id="batchOpen" type="button">사진 일괄 등록</button><button class="button ghost hidden" id="optimizeOldPhotos" type="button" title="이 단지의 기존 대용량 송수구 사진을 확인 후 압축">기존 사진 최적화</button><button class="button ghost hidden" id="cancelPinButton">위치 지정 취소</button><input accept="image/png,image/jpeg" class="hidden" id="fileInput" type="file"/></div></div></div><div class="geo-map-control hidden" id="geoMapControl"><span class="geo-status" id="geoStatus">아파트 주소를 지도에서 찾는 중입니다.</span><div aria-label="GPS 위치 신뢰도" class="gps-quality-panel" id="gpsQualityPanel"><div class="gps-quality-row"><span aria-hidden="true" class="gps-quality-dot is-pending" id="gpsQualityDot"></span><span class="gps-line" id="gpsMapInfo" role="status">아파트 지도를 열면 GPS 위치 확인을 자동으로 시도합니다.</span><button class="button gps-retry" id="gpsRetryButton" type="button">위치 재측정</button></div><div class="gps-quality-warning hidden" id="gpsQualityWarning" role="status">GPS 오차가 큽니다. 건물 밖에서 재측정하고 송수구 사진·현장 구조물을 확인하세요.</div></div><div aria-label="기존 표식의 지도 좌표 재지정" class="geo-legacy hidden" id="geoLegacy"></div><button class="button blue hidden" id="confirmAptLocation" type="button">단지 중심 위치 확정</button><button class="button ghost hidden" id="retryAptLocation" type="button">주소 재검색</button></div></div>
 <div aria-label="연결송수구 사진" aria-modal="true" class="pin-photo hidden" id="pinPhotoModal" role="dialog">
 <div class="pin-photo-header"><div style="min-width:0"><strong id="pinPhotoName">연결송수구</strong><div class="small muted" id="pinPhotoApartment"></div></div><button class="button" id="pinPhotoClose">닫기 ×</button></div>
 <div class="pin-photo-stage" id="pinPhotoStage"><img alt="선택한 연결송수구 실제 사진" class="hidden" id="pinPhotoImage"/><div class="pin-photo-empty" id="pinPhotoEmpty">사진을 불러오는 중입니다.</div></div>
@@ -2544,6 +2544,59 @@ button, .button, input, select, #list .apt{
 const SUPABASE_URL='https://lhcamtrmmqqahvghexph.supabase.co';  
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_yZ-54sRkR4UaFDbdHhfrDQ_1a1Rzxd3';
 const BUCKET='connection-maps';
+
+// 62차: 원본 EXIF GPS 판독은 변경하지 않고 업로드 직전에만 자동 압축.
+// 작은 이미지 / 압축 이득이 없는 사진은 원본 유지. 임의의 용량 상한으로 화질을 훼손하지 않음.
+const PHOTO_MAX_EDGE=1920,PHOTO_JPEG_QUALITY=.85,PHOTO_COMPRESS_START=800*1024;
+function photoFormatBytes(bytes){return bytes>=1024*1024?(bytes/1048576).toFixed(2)+'MB':Math.round(bytes/1024)+'KB'}
+async function optimizeUploadPhoto(file){
+ if(!file||!['image/jpeg','image/png'].includes(file.type))throw Error('JPG 또는 PNG 사진만 지원합니다.');
+ if(file.size<=PHOTO_COMPRESS_START)return file;
+ let bitmap=null,image=null,objectUrl=null;
+ try{
+  let w,h,source;
+  if(typeof createImageBitmap==='function'){
+   try{bitmap=await createImageBitmap(file,{imageOrientation:'from-image'});source=bitmap;w=bitmap.width;h=bitmap.height}catch(_){bitmap=null}
+  }
+  if(!source){
+   objectUrl=URL.createObjectURL(file);image=new Image();image.decoding='async';
+   await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(Error('사진 형식을 확인하세요.'));image.src=objectUrl});
+   source=image;w=image.naturalWidth;h=image.naturalHeight;
+  }
+  if(!w||!h)throw Error('사진 크기를 확인하지 못했습니다.');
+  const ratio=Math.min(1,PHOTO_MAX_EDGE/Math.max(w,h));
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.max(1,Math.round(w*ratio));canvas.height=Math.max(1,Math.round(h*ratio));
+  const ctx=canvas.getContext('2d',{alpha:false});if(!ctx)throw Error('이미지 변환 기능을 사용할 수 없습니다.');
+  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+  ctx.drawImage(source,0,0,canvas.width,canvas.height);
+  const result=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',PHOTO_JPEG_QUALITY));
+  if(!result||result.size>=file.size)return file;
+  // File content may become JPEG even if source is PNG. Name/ext/content-type always follow result.
+  return new File([result],file.name.replace(/\.[^.]+$/,'')+'_optimized.jpg',{type:'image/jpeg',lastModified:Date.now()});
+ }catch(error){
+  // Image loading or conversion failure must not prevent storing a valid original.
+  console.warn('사진 자동 압축 생략:',error);return file;
+ }finally{if(bitmap)bitmap.close();if(objectUrl)URL.revokeObjectURL(objectUrl)}
+}
+// Signed URL(15min) reuses one token for thumbnail and full-size photo, reducing repeat request/transfer.
+// Browser HTTP cache is additionally enabled via new uploads' cacheControl=3600.
+const photoSignedCache=new Map();
+function clearPhotoSignedCache(path){if(path)photoSignedCache.delete(path)}
+async function cachedPhotoUrl(path){
+ if(!path)throw Error('사진 경로가 없습니다.');
+ const cached=photoSignedCache.get(path);
+ if(cached&&cached.expires>Date.now())return cached.promise;
+ const promise=(async()=>{
+  const {data,error}=await client.storage.from(BUCKET).createSignedUrl(path,15*60);
+  if(error)throw error;
+  return data.signedUrl;
+ })();
+ photoSignedCache.set(path,{promise,expires:Date.now()+12*60*1000});
+ try{return await promise}catch(e){clearPhotoSignedCache(path);throw e}
+}
+
 const KAKAO_MAP_ENABLED=true;
 const fallback=[{"id":1,"center":"기산","name":"유호월드피아","address":"기산면 지산로 961"},{"id":2,"center":"기산","name":"왜관휴먼시아4단지","address":"왜관읍 관문로1길 24"},{"id":3,"center":"기산","name":"우방타운","address":"왜관읍 중앙로 117"},{"id":4,"center":"기산","name":"정다움빌라트","address":"왜관읍 석전로9길 10-14"},{"id":5,"center":"기산","name":"왜관아파트","address":"왜관읍 평장2길 14"},{"id":6,"center":"기산","name":"프라임하우징","address":"왜관읍 석전로7길 17-2"},{"id":7,"center":"기산","name":"한일그린맨션","address":"왜관읍 석전로7길 21-14"},{"id":8,"center":"기산","name":"다한알래스","address":"왜관읍 석전로7길 28"},{"id":9,"center":"기산","name":"대화전원타운","address":"왜관읍 석전로9길 7"},{"id":10,"center":"기산","name":"오성빌라맨션","address":"왜관읍 구상길 156"},{"id":11,"center":"기산","name":"삼성아파트","address":"왜관읍 구상길 180"},{"id":12,"center":"기산","name":"칠곡왜관2단지주공아파트","address":"왜관읍 자조1길 10"},{"id":13,"center":"기산","name":"로얄3차아파트","address":"왜관읍 전원1길 20"},{"id":14,"center":"기산","name":"문화파크맨션","address":"왜관읍 관문로 114-5"},{"id":15,"center":"기산","name":"왜관주공아파트","address":"왜관읍 평장2길 14"},{"id":16,"center":"기산","name":"로얄1차","address":"왜관읍 중앙로 126"},{"id":17,"center":"기산","name":"로얄2차","address":"왜관읍 중앙로 129"},{"id":18,"center":"기산","name":"무성그린맨션","address":"왜관읍 군청4길 32"},{"id":19,"center":"기산","name":"풍국맨션","address":"왜관읍 석전로2길 6"},{"id":20,"center":"기산","name":"상신명가타운","address":"왜관읍 석전로1길 12-8"},{"id":21,"center":"기산","name":"한빛타운","address":"왜관읍 석전로 77"},{"id":22,"center":"기산","name":"왜관3차우방타운","address":"왜관읍 석전로7길 40"},{"id":23,"center":"기산","name":"왜관주공3단지아파트","address":"왜관읍 평장7길 11"},{"id":24,"center":"동명","name":"신원아파트","address":"동명면 금암중앙길 121-6"},{"id":25,"center":"북삼","name":"늘푸른아파트","address":"북삼읍 북삼로8길 19"},{"id":26,"center":"북삼","name":"네오빌","address":"북삼읍 금오대로6길 22"},{"id":27,"center":"북삼","name":"창신아파트","address":"북삼읍 금오대로6길 9-6"},{"id":28,"center":"북삼","name":"시티타운","address":"북삼읍 인강8길 13"},{"id":29,"center":"북삼","name":"화성타운","address":"북삼읍 인강8길 21"},{"id":30,"center":"북삼","name":"현진아파트","address":"북삼읍 금오대로10길 35"},{"id":31,"center":"북삼","name":"대성그린타운(구.이강대건물)","address":"북삼읍 북삼로4길 9"},{"id":32,"center":"북삼","name":"백산그랜드","address":"북삼읍 금오대로8길 29"},{"id":33,"center":"북삼","name":"전원대동타운","address":"북삼읍 외율1길 9"},{"id":34,"center":"북삼","name":"삼주아파트","address":"북삼읍 어로3길 9"},{"id":35,"center":"북삼","name":"용우아파트","address":"북삼읍 북삼로 188-5"},{"id":36,"center":"북삼","name":"숭오화성파크","address":"북삼읍 북삼로 193-5"},{"id":37,"center":"북삼","name":"금오현대아파트","address":"북삼읍 안산2길 37-9"},{"id":38,"center":"석적","name":"동화공단타운","address":"석적읍 대교길 36"},{"id":39,"center":"북삼","name":"화진금봉타운2차","address":"북삼읍 북삼로 214-4"},{"id":40,"center":"북삼","name":"숭오화진금봉타운1차","address":"북삼읍 안산2길 6-4"},{"id":41,"center":"북삼","name":"숭오대동타운","address":"북삼읍 인강5길 59"},{"id":42,"center":"북삼","name":"로얄아파트","address":"북삼읍 인강9길 10"},{"id":43,"center":"북삼","name":"궁전맨션","address":"북삼읍 인평3길 19"},{"id":44,"center":"북삼","name":"대양맨션","address":"북삼읍 인평5길 18-7"},{"id":45,"center":"북삼","name":"용암빌라","address":"북삼읍 인평2길 15"},{"id":46,"center":"북삼","name":"태광아트빌","address":"북삼읍 금오대로7길 53"},{"id":47,"center":"석적","name":"3공단부영아파트","address":"석적읍 북중리3길 70"},{"id":48,"center":"석적","name":"우방신천지타운(1,2단지)","address":"석적읍 석적로 955-19"},{"id":49,"center":"석적","name":"중리아파트","address":"석적읍 남중리2길 69"},{"id":50,"center":"약목","name":"복성두성타운","address":"약목면 복성17길 54"},{"id":51,"center":"약목","name":"비룡아파트","address":"약목면 약목로 95-6"},{"id":52,"center":"약목","name":"동신빌라트","address":"약목면 복성14길 29-1"},{"id":53,"center":"약목","name":"오성타워맨션","address":"약목면 복성13길 24"},{"id":54,"center":"약목","name":"우영아파트","address":"약목면 복성15길 38"},{"id":55,"center":"약목","name":"화성빌라","address":"약목면 복성3길 6"},{"id":56,"center":"약목","name":"안국아파트","address":"약목면 동안1길 15"},{"id":57,"center":"약목","name":"성재아파트","address":"약목면 관호8길 32-2"},{"id":58,"center":"약목","name":"삼주강변타운","address":"약목면 관호8길 28-18"}];
 const demoApt={id:900001,center:'기산',name:'칠곡소방서',address:'칠곡군 칠곡대로 1216'};
@@ -2721,7 +2774,7 @@ async function seedData(){if(!isAdmin)return;if(!confirm('기존 데이터는 �
 let pins=[],pinMode='',pinMoveId=null,pinLoadToken=0,pinChannel=null,editingPin=null,activePhotoPin=null,photoToken=0;
 function updatePinModeUI(){
  const eligible=!!isAdmin&&!!selected&&(!!selected.map_path||KAKAO_MAP_ENABLED);
- $('addPinButton').classList.toggle('hidden',!eligible);$('addPinFromGPS').classList.toggle('hidden',!eligible||!KAKAO_MAP_ENABLED);$('batchOpen').classList.toggle('hidden',!eligible||!KAKAO_MAP_ENABLED);
+ $('addPinButton').classList.toggle('hidden',!eligible);$('addPinFromGPS').classList.toggle('hidden',!eligible||!KAKAO_MAP_ENABLED);$('batchOpen').classList.toggle('hidden',!eligible||!KAKAO_MAP_ENABLED);$('optimizeOldPhotos').classList.toggle('hidden',!eligible);
  $('cancelPinButton').classList.toggle('hidden',!pinMode);
  $('addPinButton').classList.toggle('pin-mode',pinMode==='add');
  const hint=$('pinHint');hint.classList.toggle('active',!!pinMode);
@@ -2817,12 +2870,13 @@ $('pinEditorForm').onsubmit=async e=>{
  $('pinSave').disabled=true;$('pinEditorError').textContent='저장 중입니다...';
  let newPath=null;
  try{
-  if(file){const ext=file.type==='image/png'?'png':'jpg';newPath=`maps/${aptId}/photos/${crypto.randomUUID()}.${ext}`;
-   const {error:up}=await client.storage.from(BUCKET).upload(newPath,file,{contentType:file.type,upsert:false,cacheControl:'300'});if(up)throw up}
+  if(file){const optimized=await optimizeUploadPhoto(file);const ext=optimized.type==='image/png'?'png':'jpg';newPath=`maps/${aptId}/photos/${crypto.randomUUID()}.${ext}`;
+   $('pinEditorError').textContent='사진 업로드 중: '+photoFormatBytes(file.size)+' → '+photoFormatBytes(optimized.size);
+   const {error:up}=await client.storage.from(BUCKET).upload(newPath,optimized,{contentType:optimized.type,upsert:false,cacheControl:'3600'});if(up)throw up}
   const payload={apartment_id:aptId,x_pct:Number($('pinEditorForm').dataset.x),y_pct:Number($('pinEditorForm').dataset.y),latitude:parseFloat($('pinEditorForm').dataset.lat)||null,longitude:parseFloat($('pinEditorForm').dataset.lng)||null,building,memo,pressure_range,supply_zone,photo_path:newPath||old?.photo_path||null,updated_at:new Date().toISOString()};if(KAKAO_MAP_ENABLED&&(!payload.latitude||!payload.longitude))throw Error('지도 위 송수구 위치를 먼저 지정하세요.');
   const result=old?await client.from('standpipe_pins').update(payload).eq('id',old.id).select('id').single():await client.from('standpipe_pins').insert(payload).select('id').single();
   if(result.error)throw result.error;
-  if(newPath&&old?.photo_path&&newPath!==old.photo_path){await client.storage.from(BUCKET).remove([old.photo_path])}
+  if(newPath&&old?.photo_path&&newPath!==old.photo_path){clearPhotoSignedCache(old.photo_path);await client.storage.from(BUCKET).remove([old.photo_path])}
   closePinEditor();await fetchPins();showNotice(`${building} 표식 정보가 저장되었습니다.`,'success');
  }catch(err){if(newPath)await client.storage.from(BUCKET).remove([newPath]);$('pinEditorError').textContent='저장 실패: '+errorMessage(err)}finally{$('pinSave').disabled=false}
 };
@@ -2987,9 +3041,9 @@ async function openPinPhoto(p){
  const img=$('pinPhotoImage');img.classList.add('hidden');img.removeAttribute('src');
  $('pinPhotoEmpty').classList.remove('hidden');$('pinPhotoEmpty').textContent=p.photo_path?'실제 송수구 사진을 불러오는 중입니다.':'등록된 실제 사진이 없습니다.';photoReset();
  if(!p.photo_path)return;
- try{const {data,error}=await client.storage.from(BUCKET).createSignedUrl(p.photo_path,15*60);if(error)throw error;if(ticket!==photoToken)return;
+ try{const signedUrl=await cachedPhotoUrl(p.photo_path);if(ticket!==photoToken)return;
  img.onload=()=>{if(ticket!==photoToken)return;img.classList.remove('hidden');$('pinPhotoEmpty').classList.add('hidden');photoReset()};
- img.onerror=()=>{if(ticket===photoToken)$('pinPhotoEmpty').textContent='사진 표시 실패: 네트워크 또는 권한을 확인하세요.'};img.src=data.signedUrl;
+ img.onerror=()=>{if(ticket===photoToken)$('pinPhotoEmpty').textContent='사진 표시 실패: 네트워크 또는 권한을 확인하세요.'};img.src=signedUrl;
  }catch(e){if(ticket===photoToken)$('pinPhotoEmpty').textContent='사진 조회 실패: '+errorMessage(e)}
 }
 $('pinPhotoClose').onclick=closePinPhoto;
@@ -3147,13 +3201,12 @@ async function updateDirectionThumbnail(p){
  clearDirectionThumbnail(p?.photo_path?'사진 로딩 중':'사진 미등록');
  if(!p?.photo_path)return;
  try{
-  const {data,error}=await client.storage.from(BUCKET).createSignedUrl(p.photo_path,15*60);
-  if(error)throw error;
+  const signedUrl=await cachedPhotoUrl(p.photo_path);
   if(ticket!==directionThumbToken)return;
   const img=$('mapDirectionThumbImg');
   img.onload=()=>{if(ticket!==directionThumbToken)return;$('mapDirectionThumbEmpty').classList.add('hidden');img.classList.remove('hidden')};
   img.onerror=()=>{if(ticket!==directionThumbToken)return;clearDirectionThumbnail('사진 조회 불가')};
-  img.src=data.signedUrl;
+  img.src=signedUrl;
  }catch(e){if(ticket===directionThumbToken)clearDirectionThumbnail('사진 조회 불가')}
 }
 function resetDirectionGuide(){
@@ -3513,6 +3566,51 @@ function batchRenderMap(){
  }
 }
 function batchClose(){if(batchSaving)return;batchMapMode=false;batchClearOverlays();$('batchModal').classList.add('hidden');$('batchMapBar').classList.add('hidden');$('batchFiles').value='';batchItems=[];batchAptId=null;batchLoadTicket++;}
+
+// Existing large images are NOT modified automatically; admin explicitly selects the apartment and confirms.
+let oldPhotoOptimizationRunning=false;
+$('optimizeOldPhotos').onclick=async()=>{
+ if(!isAdmin||!client||!selected||oldPhotoOptimizationRunning)return;
+ const aptId=selected.id,aptName=selected.name;
+ const candidates=pins.filter(p=>!!p.photo_path);
+ if(!candidates.length){showNotice('이 단지에는 등록된 송수구 사진이 없습니다.');return;}
+ if(!confirm(`${aptName}의 기존 송수구 사진 ${candidates.length}개를 점검할까요?\n800KB 초과 사진만 1920px·품질 85%로 압축을 시도합니다.\n새 사진 저장과 DB 변경이 성공한 경우에만 이전 파일을 삭제합니다.\n사진 속 EXIF 위치정보는 새 사진에 남지 않지만, 등록된 지도 좌표는 유지됩니다.`))return;
+ const button=$('optimizeOldPhotos');oldPhotoOptimizationRunning=true;button.disabled=true;
+ let changed=0,skipped=0,failed=0,reclaimed=0,cleanupFailed=0;
+ try{
+  for(const [i,p] of candidates.entries()){
+   if(!isAdmin||!selected||selected.id!==aptId)throw Error('처리 도중 선택 단지나 관리자 권한이 변경되었습니다.');
+   button.textContent=`사진 정리 ${i+1}/${candidates.length}`;
+   let newPath=null,updated=false;
+   try{
+    const {data:original,error:downloadError}=await client.storage.from(BUCKET).download(p.photo_path);
+    if(downloadError)throw downloadError;
+    if(original.size<=PHOTO_COMPRESS_START){skipped++;continue;}
+    const ext=p.photo_path.toLowerCase().split('.').pop();
+    const type=original.type|| (ext==='png'?'image/png':'image/jpeg');
+    if(!['image/jpeg','image/png'].includes(type)){skipped++;continue;}
+    const source=new File([original],'existing.'+(type==='image/png'?'png':'jpg'),{type});
+    const optimized=await optimizeUploadPhoto(source);
+    if(optimized.size>=original.size*.90){skipped++;continue;}
+    newPath=`maps/${aptId}/photos/${crypto.randomUUID()}.${optimized.type==='image/png'?'png':'jpg'}`;
+    const {error:upError}=await client.storage.from(BUCKET).upload(newPath,optimized,{contentType:optimized.type,upsert:false,cacheControl:'3600'});
+    if(upError)throw upError;
+    // Conditional update protects against a simultaneous edit on another administrator's device.
+    const {data:rows,error:dbError}=await client.from('standpipe_pins').update({photo_path:newPath,updated_at:new Date().toISOString()}).eq('id',p.id).eq('apartment_id',aptId).eq('photo_path',p.photo_path).select('id');
+    if(dbError)throw dbError;
+    if(!rows||rows.length!==1)throw Error('다른 관리자가 사진을 변경하여 이번 사진은 건너뜁니다.');
+    updated=true;changed++;reclaimed+=original.size-optimized.size;
+    clearPhotoSignedCache(p.photo_path);
+    const {error:removeError}=await client.storage.from(BUCKET).remove([p.photo_path]);
+    if(removeError)cleanupFailed++;
+   }catch(err){failed++;console.warn('기존 사진 최적화 실패',p.id,err);}
+   finally{if(newPath&&!updated){try{await client.storage.from(BUCKET).remove([newPath])}catch(_){}}}
+  }
+  showNotice(`기존 사진 정리 결과: ${changed}개 압축 · ${skipped}개 유지 · ${failed}개 실패 · 절감 약 ${photoFormatBytes(reclaimed)}${cleanupFailed?' · 오래된 파일 정리 실패 '+cleanupFailed+'개':''}`,failed?'error':'success');
+ }catch(e){showNotice('사진 정리 중단: '+errorMessage(e),'error');}
+ finally{oldPhotoOptimizationRunning=false;button.disabled=false;button.textContent='기존 사진 최적화';if(selected?.id===aptId)await fetchPins();}
+};
+
 $('batchOpen').onclick=()=>{
  if(!isAdmin||!selected||!geoMap)return;
  if(selected.no_standpipe){alert('송수구 없음 지정을 해제한 뒤 등록하세요.');return;}
@@ -3558,8 +3656,8 @@ $('batchSave').onclick=async()=>{
   try{
    if(!isAdmin||!selected||selected.id!==batchAptId)throw Error('단지 또는 관리자 권한이 변경되었습니다.');
    // 각 사진당 새 UUID로 저장, 기존 표식/파일 수정 없음.
-   const ext=item.file.type==='image/png'?'png':'jpg';uploaded=`maps/${batchAptId}/photos/${crypto.randomUUID()}.${ext}`;
-   const {error:uploadError}=await client.storage.from(BUCKET).upload(uploaded,item.file,{contentType:item.file.type,upsert:false,cacheControl:'300'});
+   const optimized=await optimizeUploadPhoto(item.file);const ext=optimized.type==='image/png'?'png':'jpg';uploaded=`maps/${batchAptId}/photos/${crypto.randomUUID()}.${ext}`;
+   const {error:uploadError}=await client.storage.from(BUCKET).upload(uploaded,optimized,{contentType:optimized.type,upsert:false,cacheControl:'3600'});
    if(uploadError)throw uploadError;
    const payload={apartment_id:batchAptId,x_pct:50,y_pct:50,latitude:item.lat,longitude:item.lng,building:item.building.trim(),memo:item.memo.trim(),pressure_range:item.pressure.trim(),supply_zone:item.zone.trim(),photo_path:uploaded,updated_at:new Date().toISOString()};
    const {error:dbError}=await client.from('standpipe_pins').insert(payload);
