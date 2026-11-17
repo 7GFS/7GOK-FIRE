@@ -3409,29 +3409,34 @@ function nearResultsDisplay(near,complete,errorCount){
 }
 $('findNearby').onclick=async()=>{
  if(nearWorking)return;
- const btn=$('findNearby');nearWorking=true;btn.disabled=true;btn.textContent='위치 확인 중…';
+ const btn=$('findNearby');const token=++nearTaskId;nearWorking=true;btn.disabled=true;btn.textContent='위치 확인 중…';
  try{
   const pos=await oneGPSFix();
-  const token=++nearTaskId,near=new Map();let errorCount=0;
+  if(token!==nearTaskId)return;
+  const near=new Map();let errorCount=0;
   const apps=allApts().filter(a=>!isDemoApt(a));let next=0;
   // GPS 좌표로 주변 단지를 로컬 계산하며, 단지 주소만 카카오 지오코딩에 요청함.
   nearResultsDisplay(near,false,0);
   await getKakaoSDK();
+  if(token!==nearTaskId)return;
   const worker=async()=>{
    while(token===nearTaskId){
     const i=next++;if(i>=apps.length)break;
     const a=apps[i];
     try{const p=await apartmentCoordinates(a);if(isGeoPoint(p.lat,p.lng))near.set(a.id,{a,dist:distanceM(pos,p),verified:p.verified});else errorCount++}
     catch(_){errorCount++}
+    if(token!==nearTaskId)return;
     nearResultsDisplay(near,false,errorCount);
    }
   };
   await Promise.all([worker(),worker(),worker()]);
+  if(token!==nearTaskId)return;
   nearResultsDisplay(near,true,errorCount);
   if(!near.size)showNotice('주변 아파트 위치를 조회하지 못했습니다. 아래 검색 기능을 이용하세요.','error');
  }catch(e){
+  if(token!==nearTaskId)return;
   $('nearbyResults').classList.remove('hidden');$('nearbyTitle').textContent=gpsErrorText(e);$('nearbyCards').replaceChildren();
- }finally{nearWorking=false;btn.disabled=false;btn.textContent='⌖ 내 주변 아파트 찾기'}
+ }finally{if(token===nearTaskId){nearWorking=false;btn.disabled=false;btn.textContent='⌖ 내 주변 아파트 찾기'}}
 };
 
 $('loginForm').onsubmit=async e=>{e.preventDefault();$('loginError').textContent='';$('doLogin').disabled=true;try{const {error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;$('loginModal').classList.add('hidden');$('password').value=''}catch(error){$('loginError').textContent=errorMessage(error)}finally{$('doLogin').disabled=false}};
@@ -3448,7 +3453,18 @@ $('reset').onclick=()=>{
  if(geoMap){
   if(geoApartmentCenter){geoMap.setLevel(1);geoMap.setCenter(new kakao.maps.LatLng(geoApartmentCenter.lat,geoApartmentCenter.lng));geoMap.relayout();}
  }else resetView();
-};for(const k of ['search','town','center'])$(k).addEventListener(k==='search'?'input':'change',render);$('clear').onclick=()=>{$('search').value='';$('town').value='';$('center').value='';render()};document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(exifAdjustActive){$('exifAdjustCancel').click();return;}if(!$('dashboardModal').classList.contains('hidden')){$('dashboardModal').classList.add('hidden');dashboardTicket++;return;}if(!$('issueMineModal').classList.contains('hidden')){$('issueMineModal').classList.add('hidden');issueMineTicket++}else if(!$('issueReportModal').classList.contains('hidden'))issueModalClose();else if(!$('issueAdminModal').classList.contains('hidden')){$('issueAdminModal').classList.add('hidden');issueAdminTicket++}else if(!$('pinEditorModal').classList.contains('hidden'))closePinEditor();else if(!$('pinPhotoModal').classList.contains('hidden'))closePinPhoto();else if(pinMode)cancelPinMode();else if(!$('loginModal').classList.contains('hidden'))$('loginModal').classList.add('hidden');else if(selected)hideMap()}});window.addEventListener('resize',()=>{if(selected&&baseW)resetView()});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&client)void refresh()});
+};for(const k of ['search','town','center'])$(k).addEventListener(k==='search'?'input':'change',render);$('clear').onclick=()=>{
+  // 검색과 주변 아파트 조회 결과를 함께 초기화한다.
+  ++nearTaskId;nearWorking=false;
+  $('nearbyResults').classList.add('hidden');
+  $('nearbyTitle').textContent='';
+  $('nearbyCards').replaceChildren();
+  const nearbyButton=$('findNearby');
+  nearbyButton.disabled=false;
+  nearbyButton.textContent='⌖ 내 주변 아파트 찾기';
+  $('search').value='';$('town').value='';$('center').value='';
+  render();
+};document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(exifAdjustActive){$('exifAdjustCancel').click();return;}if(!$('dashboardModal').classList.contains('hidden')){$('dashboardModal').classList.add('hidden');dashboardTicket++;return;}if(!$('issueMineModal').classList.contains('hidden')){$('issueMineModal').classList.add('hidden');issueMineTicket++}else if(!$('issueReportModal').classList.contains('hidden'))issueModalClose();else if(!$('issueAdminModal').classList.contains('hidden')){$('issueAdminModal').classList.add('hidden');issueAdminTicket++}else if(!$('pinEditorModal').classList.contains('hidden'))closePinEditor();else if(!$('pinPhotoModal').classList.contains('hidden'))closePinPhoto();else if(pinMode)cancelPinMode();else if(!$('loginModal').classList.contains('hidden'))$('loginModal').classList.add('hidden');else if(selected)hideMap()}});window.addEventListener('resize',()=>{if(selected&&baseW)resetView()});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&client)void refresh()});
 
 
 // === 11차: 관리자 사진 여러 장 GPS 위치 기반 일괄 등록 ===
