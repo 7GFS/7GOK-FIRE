@@ -3942,8 +3942,9 @@ function nearCard(a,dist,verified){
  const b=document.createElement('button');b.type='button';b.className='nearby-card';
  const left=document.createElement('span'),name=document.createElement('strong'),address=document.createElement('small'),right=document.createElement('span');
  name.textContent=a.name;address.textContent=a.address+(verified?' · 위치 확인됨':' · 주소 기반 추정');right.className='nearby-distance';right.textContent=readableDistance(dist);
- left.append(name);
- if(isDemoApt(a)){const badge=document.createElement('span');badge.className='nearby-demo-badge';badge.textContent='시연용';left.append(badge)}
+ const nameLine=document.createElement('span');nameLine.className='nearby-name-line';nameLine.append(name);
+ if(isDemoApt(a)){const badge=document.createElement('span');badge.className='nearby-demo-badge';badge.textContent='시연용';nameLine.append(badge)}
+ left.append(nameLine);
  left.append(address);b.append(left,right);b.onclick=()=>showMap(a);return b;
 }
 function nearResultsDisplay(near,complete,errorCount){
@@ -4556,10 +4557,13 @@ schedule();
 })();
 </script><style id="release-footer-and-demo-nearby">
 #nearbyResults .nearby-demo-badge{display:inline-block;margin:3px 0 0 6px;padding:1px 5px;border:1px solid #EA580C;border-radius:5px;color:#9A3412;background:transparent;font-size:10px;font-weight:600;vertical-align:middle;line-height:1.5}
+#nearbyResults .nearby-name-line{display:flex;align-items:center;gap:6px;min-width:0;flex-wrap:nowrap}
+#nearbyResults .nearby-name-line strong{min-width:0;overflow-wrap:anywhere}
+#nearbyResults .nearby-name-line .nearby-demo-badge{margin:0;flex:none;white-space:nowrap}
 #nearbyResults.nearby-results{position:relative;z-index:1;margin:10px 0 12px;}
 footer.footer .app-version-info{margin-top:13px;padding-top:10px;text-align:center;color:#94A3B8;font-size:11px;font-weight:400;letter-spacing:.02em}
 </style><script id="nearby-results-scroll-with-list">
 (function(){const fixedPanel=document.querySelector('.hero-search-stage > .main-search-panel:not(.sticky-summary-shell)');const results=document.getElementById('nearbyResults');if(fixedPanel&&results)fixedPanel.after(results)})();
 </script><script id="release-version-info">
-(function(){const footer=document.querySelector('main.wrap footer.footer');if(!footer)return;const info=document.createElement('div');info.className='app-version-info';info.textContent='Version 1.3.0 · Build 77';footer.append(info)})();
+(function(){const footer=document.querySelector('main.wrap footer.footer');if(!footer)return;const info=document.createElement('div');info.className='app-version-info';info.textContent='Version 1.3.0 · Build 78';footer.append(info)})();
 </script></body></html>
