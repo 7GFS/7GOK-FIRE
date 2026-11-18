@@ -4010,7 +4010,7 @@ $('findNearby').onclick=async()=>{
  }catch(e){
   if(token!==nearTaskId)return;
   $('nearbyResults').classList.remove('hidden');$('nearbyTitle').textContent=gpsErrorText(e);$('nearbyCards').replaceChildren();
- }finally{if(token===nearTaskId){nearWorking=false;btn.disabled=false;btn.textContent='⌖ 내 주변 아파트 찾기'}}
+ }finally{if(token===nearTaskId){nearWorking=false;btn.disabled=false;btn.textContent='내 주변 아파트 찾기'}}
 };
 
 $('loginForm').onsubmit=async e=>{e.preventDefault();$('loginError').textContent='';$('doLogin').disabled=true;try{const {error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;$('loginModal').classList.add('hidden');$('password').value=''}catch(error){$('loginError').textContent=errorMessage(error)}finally{$('doLogin').disabled=false}};
@@ -4584,7 +4584,7 @@ footer.footer .app-version-info{margin-top:13px;padding-top:10px;text-align:cent
 </style><script id="nearby-results-scroll-with-list">
 (function(){const fixedPanel=document.querySelector('.hero-search-stage > .main-search-panel:not(.sticky-summary-shell)');const results=document.getElementById('nearbyResults');if(fixedPanel&&results)fixedPanel.after(results)})();
 </script><script id="release-version-info">
-(function(){const footer=document.querySelector('main.wrap footer.footer');if(!footer)return;const info=document.createElement('div');info.className='app-version-info';info.textContent='Version 1.4.1 · Build 82';footer.append(info)})();
+(function(){const footer=document.querySelector('main.wrap footer.footer');if(!footer)return;const info=document.createElement('div');info.className='app-version-info';info.textContent='Version 1.4.2 · Build 83';footer.append(info)})();
 </script><style id="hero-full-height-and-sticky-clear-build79">
 /* 최초 진입 시 상단 기관명·관리자 버튼 뒤에도 배경 사진이 연속되도록 복구 */
 .hero-search-stage > .stage-hero-photo{top:0 !important;z-index:0 !important;}
