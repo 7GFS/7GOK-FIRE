@@ -4545,7 +4545,7 @@ schedule();
   scheduled=false;
   const h=header.getBoundingClientRect().height;
   // Keep hero photo visible behind the header and top of the search area.
-  stage.style.setProperty('--sticky-hero-photo-height',Math.round(Math.max(230,Math.min(510,h+125)))+'px');
+  stage.style.setProperty('--sticky-hero-photo-height',Math.round(Math.max(330,Math.min(550,h+190)))+'px');
   const stuck=marker.getBoundingClientRect().top<=1;
   panel.classList.toggle('search-is-stuck',stuck);
  }
@@ -4565,5 +4565,21 @@ footer.footer .app-version-info{margin-top:13px;padding-top:10px;text-align:cent
 </style><script id="nearby-results-scroll-with-list">
 (function(){const fixedPanel=document.querySelector('.hero-search-stage > .main-search-panel:not(.sticky-summary-shell)');const results=document.getElementById('nearbyResults');if(fixedPanel&&results)fixedPanel.after(results)})();
 </script><script id="release-version-info">
-(function(){const footer=document.querySelector('main.wrap footer.footer');if(!footer)return;const info=document.createElement('div');info.className='app-version-info';info.textContent='Version 1.3.0 · Build 78';footer.append(info)})();
-</script></body></html>
+(function(){const footer=document.querySelector('main.wrap footer.footer');if(!footer)return;const info=document.createElement('div');info.className='app-version-info';info.textContent='Version 1.3.1 · Build 79';footer.append(info)})();
+</script><style id="hero-full-height-and-sticky-clear-build79">
+/* 최초 진입 시 상단 기관명·관리자 버튼 뒤에도 배경 사진이 연속되도록 복구 */
+.hero-search-stage > .stage-hero-photo{top:0 !important;z-index:0 !important;}
+.hero-search-stage > header.header{position:relative !important;z-index:2 !important;background:transparent !important;}
+.hero-search-stage > .main-search-panel:not(.sticky-summary-shell):not(.search-is-stuck){
+ background:transparent !important;
+ -webkit-backdrop-filter:none !important;
+ backdrop-filter:none !important;
+ box-shadow:none !important;
+}
+/* 고정된 검색창은 목록이 뒤로 지나가도 입력창의 가독성을 유지 */
+.hero-search-stage > .main-search-panel.search-is-stuck{
+ background:rgba(9,17,30,.99) !important;
+ -webkit-backdrop-filter:blur(12px) !important;
+ backdrop-filter:blur(12px) !important;
+}
+</style></body></html>
