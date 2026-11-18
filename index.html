@@ -3944,8 +3944,22 @@ function nearCard(a,dist,verified){
  name.textContent=a.name;address.textContent=a.address+(verified?' · 위치 확인됨':' · 주소 기반 추정');right.className='nearby-distance';right.textContent=readableDistance(dist);
  const nameLine=document.createElement('span');nameLine.className='nearby-name-line';nameLine.append(name);
  if(isDemoApt(a)){const badge=document.createElement('span');badge.className='nearby-demo-badge';badge.textContent='시연용';nameLine.append(badge)}
+ const status=document.createElement('span');status.className='nearby-registration-badge';status.dataset.apartmentId=String(a.id);setNearbyRegistrationBadge(status,a);nameLine.append(status);
  left.append(nameLine);
  left.append(address);b.append(left,right);b.onclick=()=>showMap(a);return b;
+}
+function setNearbyRegistrationBadge(badge,a){
+ badge.className='nearby-registration-badge';
+ if(a.no_standpipe){badge.classList.add('none');badge.textContent='송수구 없음'}
+ else if(!pinStatsLoaded){badge.classList.add('pending');badge.textContent='확인 중'}
+ else if((pinStats.get(String(a.id))?.count||0)>0){badge.classList.add('registered');badge.textContent='송수구 등록'}
+ else{badge.classList.add('unregistered');badge.textContent='미등록'}
+}
+function refreshNearbyRegistrationBadges(){
+ const aptById=new Map(allApts().map(a=>[String(a.id),a]));
+ document.querySelectorAll('#nearbyCards .nearby-registration-badge').forEach(badge=>{
+  const a=aptById.get(badge.dataset.apartmentId);if(a)setNearbyRegistrationBadge(badge,a);
+ });
 }
 function nearResultsDisplay(near,complete,errorCount){
  const box=$('nearbyResults'),cards=$('nearbyCards');box.classList.remove('hidden');cards.replaceChildren();
@@ -4353,7 +4367,7 @@ async function loadPinStats(force=false){
    if(!data||data.length<500)break;
    offset+=500;
   }
-  pinStats=stats;pinStatsLoaded=true;render();
+  pinStats=stats;pinStatsLoaded=true;render();refreshNearbyRegistrationBadges();
  })();
  try{await pinStatsBusy}finally{pinStatsBusy=null}
 }
@@ -4557,15 +4571,20 @@ schedule();
 })();
 </script><style id="release-footer-and-demo-nearby">
 #nearbyResults .nearby-demo-badge{display:inline-block;margin:3px 0 0 6px;padding:1px 5px;border:1px solid #EA580C;border-radius:5px;color:#9A3412;background:transparent;font-size:10px;font-weight:600;vertical-align:middle;line-height:1.5}
-#nearbyResults .nearby-name-line{display:flex;align-items:center;gap:6px;min-width:0;flex-wrap:nowrap}
+#nearbyResults .nearby-name-line{display:flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap}
 #nearbyResults .nearby-name-line strong{min-width:0;overflow-wrap:anywhere}
 #nearbyResults .nearby-name-line .nearby-demo-badge{margin:0;flex:none;white-space:nowrap}
+#nearbyResults .nearby-registration-badge{display:inline-flex;align-items:center;flex:none;white-space:nowrap;padding:2px 6px;border-radius:5px;font-size:10px;font-weight:700;line-height:1.5;color:#fff;background:#64748b}
+#nearbyResults .nearby-registration-badge.registered{background:#22C55E;color:#ecfdf5}
+#nearbyResults .nearby-registration-badge.unregistered{background:#64748B;color:#f8fafc}
+#nearbyResults .nearby-registration-badge.none{background:#96571F;color:#fff7ed}
+#nearbyResults .nearby-registration-badge.pending{background:#94a3b8}
 #nearbyResults.nearby-results{position:relative;z-index:1;margin:10px 0 12px;}
 footer.footer .app-version-info{margin-top:13px;padding-top:10px;text-align:center;color:#94A3B8;font-size:11px;font-weight:400;letter-spacing:.02em}
 </style><script id="nearby-results-scroll-with-list">
 (function(){const fixedPanel=document.querySelector('.hero-search-stage > .main-search-panel:not(.sticky-summary-shell)');const results=document.getElementById('nearbyResults');if(fixedPanel&&results)fixedPanel.after(results)})();
 </script><script id="release-version-info">
-(function(){const footer=document.querySelector('main.wrap footer.footer');if(!footer)return;const info=document.createElement('div');info.className='app-version-info';info.textContent='Version 1.3.2 · Build 80';footer.append(info)})();
+(function(){const footer=document.querySelector('main.wrap footer.footer');if(!footer)return;const info=document.createElement('div');info.className='app-version-info';info.textContent='Version 1.4.1 · Build 82';footer.append(info)})();
 </script><style id="hero-full-height-and-sticky-clear-build79">
 /* 최초 진입 시 상단 기관명·관리자 버튼 뒤에도 배경 사진이 연속되도록 복구 */
 .hero-search-stage > .stage-hero-photo{top:0 !important;z-index:0 !important;}
